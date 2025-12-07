@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>分賬工具</title>
+    <title>MoneyCalc 分賬工具</title>
     
     <!-- PWA / Mobile Web App Setup -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -99,7 +99,11 @@
         <div class="flex justify-between items-start gap-4">
             <!-- Title Section -->
             <div class="flex-1 min-w-0"> 
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white leading-tight truncate" data-i18n="appTitle">💰 分賬工具</h1>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white leading-tight truncate flex items-center">
+                    <!-- Image Icon -->
+                    <img src="moneycalc.png" alt="MoneyCalc Icon" class="w-6 h-6 mr-2">
+                    <span data-i18n="appTitle">分賬工具</span>
+                </h1>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 truncate" data-i18n="appSubtitle">輸入人名 → 新增消費 → 自動結算</p>
             </div>
             
@@ -303,7 +307,7 @@
         // --- Translations ---
         const translations = {
             hk: {
-                appTitle: "💰 分賬工具",
+                appTitle: "分賬工具",
                 appSubtitle: "輸入人名 → 新增消費 → 自動結算",
                 step1Title: "1. 好友名單",
                 step1Badge: "第一步",
@@ -366,7 +370,7 @@
                 noDebtMsg: "🎉 太棒了！沒有人需要付錢（帳目已平）"
             },
             tw: {
-                appTitle: "💰 分帳工具",
+                appTitle: "分帳工具",
                 appSubtitle: "輸入人名 → 新增消費 → 自動結算",
                 step1Title: "1. 好友名單",
                 step1Badge: "第一步",
@@ -429,7 +433,7 @@
                 noDebtMsg: "🎉 太棒了！沒有人需要付錢（帳目已平）"
             },
             en: {
-                appTitle: "💰 Bill Splitter",
+                appTitle: "Bill Splitter",
                 appSubtitle: "Add Users → Add Expenses → Auto Split",
                 step1Title: "1. Friends",
                 step1Badge: "Step 1",
@@ -1151,7 +1155,7 @@
             } else {
                 lastTransactions.forEach(trans => {
                     // e.g. → peter 畀 ivan: *$75.00*
-                    lines.push(`${t.shareArrow} ${trans.from} ${t.shareGive} ${trans.to}: *$${trans.money}*`);
+                    lines.push(`${t.shareArrow} ${trans.from} ${trans.to}: *$${trans.money}*`);
                 });
             }
 
