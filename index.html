@@ -14,7 +14,7 @@
     <!-- 請確保 moneycalc.png 與此 html 檔案位於同一資料夾 -->
     <link rel="icon" type="image/png" href="moneycalc.png">
     <link rel="apple-touch-icon" href="moneycalc.png">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -92,32 +92,37 @@
         .dark .payer-tab-inactive { background-color: #2a2a2a; color: #a3a3a3; border-color: #333333; }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto min-h-screen flex flex-col transition-colors duration-300 bg-[#f3f4f6] dark:bg-dark-bg text-gray-900 dark:text-dark-text">
+<body id="main-body" class="p-4 max-w-md mx-auto min-h-screen flex flex-col transition-colors duration-300 bg-[#f3f4f6] dark:bg-dark-bg text-gray-900 dark:text-dark-text justify-center">
 
-    <!-- Header & Controls -->
-    <div class="flex justify-between items-start mb-6 mt-2 gap-4">
-        <!-- Title Section -->
-        <div class="flex-1 min-w-0"> 
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white leading-tight truncate" data-i18n="appTitle">💰 分賬工具</h1>
-            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 truncate" data-i18n="appSubtitle">輸入人名 → 新增消費 → 自動結算</p>
-        </div>
-        
-        <!-- Controls Section -->
-        <div class="flex gap-2 items-center flex-shrink-0">
-            <!-- Language Select -->
-            <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-gray-300 text-xs rounded-lg px-2 py-1.5 border border-transparent dark:border-[#444] outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
-                <option value="hk">🇭🇰 HK</option>
-                <option value="tw">🇹🇼 TW</option>
-                <option value="en">🇬🇧 EN</option>
-            </select>
+    <!-- Fixed Header & Controls (這一欄現在固定在頂部) -->
+    <div id="app-header" class="fixed top-0 left-1/2 transform -translate-x-1/2 w-full max-w-md z-50 p-4 pt-6 pb-4 bg-[#f3f4f6] dark:bg-dark-bg shadow-md">
+        <div class="flex justify-between items-start gap-4">
+            <!-- Title Section -->
+            <div class="flex-1 min-w-0"> 
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white leading-tight truncate" data-i18n="appTitle">💰 分賬工具</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 truncate" data-i18n="appSubtitle">輸入人名 → 新增消費 → 自動結算</p>
+            </div>
+            
+            <!-- Controls Section -->
+            <div class="flex gap-2 items-center flex-shrink-0">
+                <!-- Language Select -->
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-gray-300 text-xs rounded-lg px-2 py-1.5 border border-transparent dark:border-[#444] outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                    <option value="hk">🇭🇰 HK</option>
+                    <option value="tw">🇹🇼 TW</option>
+                    <option value="en">🇬🇧 EN</option>
+                </select>
 
-            <!-- Theme Toggle -->
-            <button onclick="toggleTheme()" class="p-1.5 rounded-full bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-yellow-400 hover:bg-gray-300 dark:hover:bg-[#444] transition-colors border border-transparent dark:border-[#444]" title="切換深色/淺色模式">
-                <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" class="p-1.5 rounded-full bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-yellow-400 hover:bg-gray-300 dark:hover:bg-[#444] transition-colors border border-transparent dark:border-[#444]" title="切換深色/淺色模式">
+                    <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Spacer div to push content down (約 5.5rem / 88px) -->
+    <div id="header-spacer" class="h-[5.5rem]"></div>
 
     <!-- Notification Toast -->
     <div id="toast">提示訊息</div>
@@ -269,11 +274,11 @@
         </button>
     </div>
 
-    <!-- Spacer to prevent sticky button blocking content -->
-    <div class="h-24"></div>
+    <!-- Spacer to prevent sticky button blocking content after unlocking -->
+    <div class="h-24 hidden" id="spacer-bottom"></div>
 
-    <!-- Action Buttons -->
-    <div class="mt-auto mb-6 sticky bottom-4 z-10 space-y-3">
+    <!-- Action Buttons (使用 fixed 讓它不影響垂直居中計算) -->
+    <div id="action-buttons-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-10 space-y-3">
         <button id="lock-users-btn" onclick="lockUsers()" class="btn w-full bg-gray-800 dark:bg-[#333] text-white dark:text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-900 dark:hover:bg-[#444] border border-transparent dark:border-[#444]" data-i18n="btnLock">
             開始記帳 (鎖定名單)
         </button>
@@ -659,6 +664,10 @@
                 showToast(t.toastMinUsers, "error");
                 return;
             }
+            
+            // --- Layout Change: Remove centering, add scrolling space ---
+            document.getElementById('main-body').classList.remove('justify-center');
+            document.getElementById('header-spacer').classList.remove('hidden'); // Show spacer when content scrolls
 
             document.getElementById('step-users').classList.add('opacity-75', 'pointer-events-none', 'grayscale');
             document.getElementById('lock-users-btn').classList.add('hidden');
@@ -707,7 +716,7 @@
 
             // Scroll to next step
             setTimeout(() => {
-                expenseStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top after transition
             }, 100);
         }
 
@@ -1101,6 +1110,10 @@
                 expenses = [];
                 totalAmount = 0;
                 
+                // --- Layout Change: Add centering, remove scrolling space ---
+                document.getElementById('main-body').classList.add('justify-center');
+                document.getElementById('header-spacer').classList.add('hidden');
+
                 // UI Reset
                 document.getElementById('step-users').classList.remove('opacity-75', 'pointer-events-none', 'grayscale');
                 document.getElementById('step-expenses').classList.add('hidden');
@@ -1124,4 +1137,3 @@
     </script>
 </body>
 </html>
-
