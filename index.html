@@ -1,17 +1,47 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-HK" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>好友分帳神器</title>
+    <title>分賬工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#111111',
+                            surface: '#1c1c1c',
+                            input: '#2a2a2a',
+                            border: '#333333',
+                            text: '#e5e5e5',
+                            subtext: '#a3a3a3'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f3f4f6; }
-        .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-bottom: 1rem; transition: all 0.3s ease; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #404040; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #525252; }
+
+        .card { 
+            border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+            padding: 1.5rem; 
+            margin-bottom: 1rem; 
+            transition: all 0.3s ease; 
+        }
         .btn { transition: all 0.2s; user-select: none; }
         .btn:active { transform: scale(0.96); }
         
-        /* Toast Notification Animation */
         #toast {
             visibility: hidden;
             min-width: 250px;
@@ -28,101 +58,124 @@
             opacity: 0;
             transition: opacity 0.3s, bottom 0.3s;
         }
+        .dark #toast {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
         #toast.show {
             visibility: visible;
             opacity: 1;
             bottom: 50px;
         }
 
-        /* Smooth fade in for lists */
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Custom Input Styles */
         .tab-active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
         .tab-inactive { background-color: white; color: #6b7280; border-color: #e5e7eb; }
+        .dark .tab-inactive { background-color: #2a2a2a; color: #a3a3a3; border-color: #333333; }
         
-        .payer-tab-active { background-color: #10b981; color: white; border-color: #10b981; } /* Green for Payer */
+        .payer-tab-active { background-color: #10b981; color: white; border-color: #10b981; } 
         .payer-tab-inactive { background-color: white; color: #6b7280; border-color: #e5e7eb; }
+        .dark .payer-tab-inactive { background-color: #2a2a2a; color: #a3a3a3; border-color: #333333; }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto min-h-screen flex flex-col">
+<body class="p-4 max-w-md mx-auto min-h-screen flex flex-col transition-colors duration-300 bg-[#f3f4f6] dark:bg-dark-bg text-gray-900 dark:text-dark-text">
 
-    <!-- Header -->
-    <div class="text-center mb-6 mt-2">
-        <h1 class="text-2xl font-bold text-gray-800">💰 好友分帳神器</h1>
-        <p class="text-gray-500 text-sm mt-1">輸入人名 → 新增消費 → 自動結算</p>
+    <!-- Header & Controls -->
+    <div class="flex justify-between items-start mb-6 mt-2 gap-4">
+        <!-- Title Section -->
+        <div class="flex-1 min-w-0"> 
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white leading-tight truncate" data-i18n="appTitle">💰 分賬工具</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 truncate" data-i18n="appSubtitle">輸入人名 → 新增消費 → 自動結算</p>
+        </div>
+        
+        <!-- Controls Section -->
+        <div class="flex gap-2 items-center flex-shrink-0">
+            <!-- Language Select -->
+            <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-gray-300 text-xs rounded-lg px-2 py-1.5 border border-transparent dark:border-[#444] outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                <option value="hk">🇭🇰 HK</option>
+                <option value="tw">🇹🇼 TW</option>
+                <option value="en">🇬🇧 EN</option>
+            </select>
+
+            <!-- Theme Toggle -->
+            <button onclick="toggleTheme()" class="p-1.5 rounded-full bg-gray-200 dark:bg-[#333] text-gray-600 dark:text-yellow-400 hover:bg-gray-300 dark:hover:bg-[#444] transition-colors border border-transparent dark:border-[#444]" title="切換深色/淺色模式">
+                <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
     </div>
 
     <!-- Notification Toast -->
     <div id="toast">提示訊息</div>
 
     <!-- Step 1: Add Users -->
-    <div id="step-users" class="card border-l-4 border-blue-500">
-        <div class="flex justify-between items-center mb-3 border-b pb-2">
-            <h2 class="text-lg font-semibold text-gray-800">1. 參加者名單</h2>
-            <span class="text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">第一步</span>
+    <div id="step-users" class="card border-l-4 border-blue-500 bg-white dark:bg-dark-surface shadow-sm">
+        <div class="flex justify-between items-center mb-3 border-b border-gray-100 dark:border-dark-border pb-2">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100" data-i18n="step1Title">1. 好友名單</h2>
+            <span class="text-xs text-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 px-2 py-1 rounded" data-i18n="step1Badge">第一步</span>
         </div>
         
         <div class="flex gap-2 mb-4">
-            <input type="text" id="new-user-name" placeholder="輸入名字 (如: 小明)" 
-                   class="flex-1 border-2 border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 transition-colors"
+            <input type="text" id="new-user-name" data-i18n-placeholder="namePlaceholder" placeholder="輸入名字 (如: 小明)" 
+                   class="flex-1 border-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-input text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors placeholder-gray-400 dark:placeholder-gray-500"
                    onkeypress="handleEnter(event, addUser)">
-            <button onclick="addUser()" class="btn bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex-shrink-0">
+            <button onclick="addUser()" class="btn bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 flex-shrink-0" data-i18n="btnAdd">
                 ＋新增
             </button>
         </div>
         
         <div id="user-list" class="flex flex-wrap gap-2 min-h-[40px]">
-            <!-- Initial empty state handled by JS -->
-            <span class="text-gray-400 text-sm py-2 italic w-full text-center" id="empty-users-msg">目前沒有參加者，請輸入名字</span>
+            <span class="text-gray-400 dark:text-gray-500 text-sm py-2 italic w-full text-center" id="empty-users-msg" data-i18n="emptyUsers">目前沒有好友，請輸入名字</span>
         </div>
     </div>
 
     <!-- Step 2: Add Expenses -->
-    <div id="step-expenses" class="card hidden border-l-4 border-green-500">
-        <div class="flex justify-between items-center mb-3 border-b pb-2">
-            <h2 class="text-lg font-semibold text-gray-800">2. 新增消費</h2>
-            <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">記帳中</span>
+    <div id="step-expenses" class="card hidden border-l-4 border-green-500 bg-white dark:bg-dark-surface shadow-sm">
+        <div class="flex justify-between items-center mb-3 border-b border-gray-100 dark:border-dark-border pb-2">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100" data-i18n="step2Title">2. 新增消費</h2>
+            <span class="text-xs text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-300 px-2 py-1 rounded" data-i18n="step2Badge">記帳中</span>
         </div>
         
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">消費項目</label>
-                <input type="text" id="item-desc" placeholder="例如：午餐、唱歌" class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-green-500">
+                <label class="block text-sm font-medium text-gray-700 dark:text-dark-subtext mb-1" data-i18n="labelItem">消費項目</label>
+                <input type="text" id="item-desc" data-i18n-placeholder="itemPlaceholder" placeholder="例如：午餐、唱歌" class="w-full border-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-input text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-green-500 dark:focus:border-green-500 placeholder-gray-400 dark:placeholder-gray-500">
             </div>
 
             <!-- PAYER SECTION -->
-            <div class="border-t pt-3">
-                 <label class="block text-sm font-medium text-gray-700 mb-2">誰先付錢？</label>
+            <div class="border-t border-gray-100 dark:border-dark-border pt-3">
+                 <label class="block text-sm font-medium text-gray-700 dark:text-dark-subtext mb-2" data-i18n="labelPayer">誰先付錢？</label>
                  
                  <!-- Payer Mode Tabs -->
-                 <div class="flex rounded-lg overflow-hidden border border-gray-200 text-sm font-bold mb-2">
-                    <button id="tab-payer-single" onclick="setPayerMode('single')" class="flex-1 py-1.5 text-center transition-colors payer-tab-active">
+                 <div class="flex rounded-lg overflow-hidden border border-gray-200 dark:border-dark-border text-sm font-bold mb-2">
+                    <button id="tab-payer-single" onclick="setPayerMode('single')" class="flex-1 py-1.5 text-center transition-colors payer-tab-active" data-i18n="tabSinglePayer">
                         單人先付
                     </button>
-                    <button id="tab-payer-multi" onclick="setPayerMode('multi')" class="flex-1 py-1.5 text-center transition-colors payer-tab-inactive">
+                    <button id="tab-payer-multi" onclick="setPayerMode('multi')" class="flex-1 py-1.5 text-center transition-colors payer-tab-inactive" data-i18n="tabMultiPayer">
                         多人先付
                     </button>
                 </div>
 
                 <!-- Single Payer Select -->
                 <div id="payer-section-single" class="relative">
-                    <select id="payer-select" class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 bg-white appearance-none focus:outline-none focus:border-green-500">
+                    <select id="payer-select" class="w-full border-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-input text-gray-900 dark:text-white rounded-lg px-3 py-2 appearance-none focus:outline-none focus:border-green-500 dark:focus:border-green-500">
                         <!-- Options populated by JS -->
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
 
                 <!-- Multi Payer Inputs -->
-                <div id="payer-section-multi" class="hidden bg-green-50 p-3 rounded-lg border border-green-100">
-                    <label class="block text-sm font-medium text-green-800 mb-2">輸入每個人付的金額：</label>
+                <div id="payer-section-multi" class="hidden bg-green-50 dark:bg-[#1a2e25] p-3 rounded-lg border border-green-100 dark:border-[#2d4a3e]">
+                    <label class="block text-sm font-medium text-green-800 dark:text-green-300 mb-2" data-i18n="labelMultiInput">輸入每個人付的金額：</label>
                     <div id="multi-payer-inputs" class="space-y-2 max-h-40 overflow-y-auto pr-1">
                         <!-- Inputs populated by JS -->
                     </div>
-                    <div class="mt-2 text-right text-xs text-green-600">
+                    <div class="mt-2 text-right text-xs text-green-600 dark:text-green-400" data-i18n="hintMultiAuto">
                         系統會自動加總為總金額
                     </div>
                 </div>
@@ -130,30 +183,30 @@
 
             <!-- AMOUNT DISPLAY (Calculated or Input) -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">總金額</label>
-                <input type="number" id="item-amount" placeholder="0" class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-green-500 font-bold text-gray-800 text-xl" inputmode="decimal">
-                <p id="amount-hint" class="text-xs text-gray-400 mt-1 hidden">多人付款模式下，總金額由上方輸入自動計算</p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-dark-subtext mb-1" data-i18n="labelAmount">總金額</label>
+                <input type="number" id="item-amount" placeholder="0.00" step="0.01" class="w-full border-2 border-gray-200 dark:border-dark-border bg-white dark:bg-dark-input text-gray-800 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:border-green-500 dark:focus:border-green-500 font-bold text-xl placeholder-gray-400 dark:placeholder-gray-500" inputmode="decimal">
+                <p id="amount-hint" class="text-xs text-gray-400 dark:text-gray-500 mt-1 hidden" data-i18n="hintAmountLock">多人付款模式下，總金額由上方輸入自動計算</p>
             </div>
 
             <!-- SPLIT SECTION -->
-            <div class="border-t pt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-2">分攤給誰？ (誰該出錢)</label>
+            <div class="border-t border-gray-100 dark:border-dark-border pt-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-dark-subtext mb-2" data-i18n="labelSplit">分攤給誰？ (誰該出錢)</label>
                 
                 <!-- Split Mode Tabs -->
-                <div class="flex rounded-lg overflow-hidden border border-gray-200 text-sm font-bold mb-2">
-                    <button id="tab-split-equal" onclick="setSplitMode('equal')" class="flex-1 py-1.5 text-center transition-colors tab-active">
+                <div class="flex rounded-lg overflow-hidden border border-gray-200 dark:border-dark-border text-sm font-bold mb-2">
+                    <button id="tab-split-equal" onclick="setSplitMode('equal')" class="flex-1 py-1.5 text-center transition-colors tab-active" data-i18n="tabEqual">
                         均分 (平分錢)
                     </button>
-                    <button id="tab-split-custom" onclick="setSplitMode('custom')" class="flex-1 py-1.5 text-center transition-colors tab-inactive">
+                    <button id="tab-split-custom" onclick="setSplitMode('custom')" class="flex-1 py-1.5 text-center transition-colors tab-inactive" data-i18n="tabCustom">
                         個別 (各自付)
                     </button>
                 </div>
 
                 <!-- Mode: Equal Split Checkboxes -->
-                <div id="split-section-equal" class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div id="split-section-equal" class="bg-gray-50 dark:bg-[#252525] p-3 rounded-lg border border-gray-100 dark:border-dark-border">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">選擇分攤人</label>
-                        <button onclick="toggleAllChecks()" class="text-xs text-blue-500 font-medium">全選/取消</button>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-i18n="labelSelectPeople">選擇分攤人</label>
+                        <button onclick="toggleAllChecks()" class="text-xs text-blue-500 dark:text-blue-400 font-medium" data-i18n="btnAllNone">全選/取消</button>
                     </div>
                     <div id="split-checkboxes" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                         <!-- Checkboxes populated by JS -->
@@ -161,30 +214,30 @@
                 </div>
 
                 <!-- Mode: Custom Amount Inputs -->
-                <div id="split-section-custom" class="hidden bg-blue-50 p-3 rounded-lg border border-blue-100">
-                    <label class="block text-sm font-medium text-blue-800 mb-2">輸入每個人該出的金額：</label>
+                <div id="split-section-custom" class="hidden bg-blue-50 dark:bg-[#1e2330] p-3 rounded-lg border border-blue-100 dark:border-[#2d3a5e]">
+                    <label class="block text-sm font-medium text-blue-800 dark:text-blue-300 mb-2" data-i18n="labelCustomInput">輸入每個人該出的金額：</label>
                     <div id="custom-split-inputs" class="space-y-2 max-h-60 overflow-y-auto pr-1">
                         <!-- Inputs populated by JS -->
                     </div>
-                    <div id="custom-split-validation" class="mt-2 text-right text-xs text-blue-600 font-bold">
+                    <div id="custom-split-validation" class="mt-2 text-right text-xs text-blue-600 dark:text-blue-400 font-bold">
                         <!-- Validation message -->
                     </div>
                 </div>
             </div>
 
-            <button onclick="addExpense()" class="btn w-full bg-green-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-200 hover:bg-green-600 active:shadow-none translate-y-0 mt-2">
+            <button onclick="addExpense()" class="btn w-full bg-green-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-600 active:shadow-none translate-y-0 mt-2" data-i18n="btnAddExpense">
                 ＋ 加入這筆帳
             </button>
         </div>
 
         <!-- Expense History -->
-        <div class="mt-6 border-t pt-4">
-            <h3 class="font-bold text-gray-700 text-sm mb-3 flex items-center">
-                <span class="mr-2">📋</span> 已記錄項目 
-                <span id="total-amount-display" class="ml-auto text-xs font-normal text-gray-500">總金額: $0</span>
+        <div class="mt-6 border-t border-gray-100 dark:border-dark-border pt-4">
+            <h3 class="font-bold text-gray-700 dark:text-gray-300 text-sm mb-3 flex items-center">
+                <span class="mr-2">📋</span> <span data-i18n="headerHistory">已記錄項目</span> 
+                <span id="total-amount-display" class="ml-auto text-xs font-normal text-gray-500 dark:text-gray-400">總金額: $0.00</span>
             </h3>
-            <ul id="expense-list" class="space-y-3 text-sm text-gray-600 max-h-60 overflow-y-auto pr-1">
-                <li class="text-center text-gray-400 italic py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <ul id="expense-list" class="space-y-3 text-sm text-gray-600 dark:text-gray-300 max-h-60 overflow-y-auto pr-1">
+                <li class="text-center text-gray-400 dark:text-gray-500 italic py-4 bg-gray-50 dark:bg-[#252525] rounded-lg border border-dashed border-gray-300 dark:border-dark-border" data-i18n="emptyHistory">
                     目前還沒有消費記錄
                 </li>
             </ul>
@@ -192,38 +245,275 @@
     </div>
 
     <!-- Step 3: Result -->
-    <div id="step-result" class="card hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100">
-        <h2 class="text-lg font-bold text-gray-800 mb-3 border-b border-indigo-100 pb-2">📊 最終結算建議</h2>
+    <div id="step-result" class="card hidden bg-gradient-to-br from-indigo-50 to-white dark:from-dark-surface dark:to-dark-surface border border-indigo-100 dark:border-dark-border">
+        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3 border-b border-indigo-100 dark:border-dark-border pb-2" data-i18n="headerResult">📊 最終結算建議</h2>
         <div id="result-list" class="space-y-3">
             <!-- Results here -->
         </div>
+        
+        <!-- Share Button -->
+        <button onclick="shareResult()" class="btn w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-lg mt-4 shadow-lg shadow-purple-200 dark:shadow-none hover:bg-purple-700 flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            <span data-i18n="btnShare">分享 / 複製結果</span>
+        </button>
     </div>
+
+    <!-- Spacer to prevent sticky button blocking content -->
+    <div class="h-24"></div>
 
     <!-- Action Buttons -->
     <div class="mt-auto mb-6 sticky bottom-4 z-10 space-y-3">
-        <button id="lock-users-btn" onclick="lockUsers()" class="btn w-full bg-gray-800 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-900">
+        <button id="lock-users-btn" onclick="lockUsers()" class="btn w-full bg-gray-800 dark:bg-[#333] text-white dark:text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-900 dark:hover:bg-[#444] border border-transparent dark:border-[#444]" data-i18n="btnLock">
             開始記帳 (鎖定名單)
         </button>
 
-        <button id="reset-btn" onclick="resetApp()" class="hidden btn w-full bg-white text-red-500 border border-red-200 py-3 rounded-xl font-medium text-sm hover:bg-red-50 shadow-sm">
+        <button id="reset-btn" onclick="resetApp()" class="hidden btn w-full bg-white dark:bg-[#252525] text-red-500 dark:text-red-400 border border-red-200 dark:border-red-900/30 py-3 rounded-xl font-medium text-sm hover:bg-red-50 dark:hover:bg-[#333] shadow-sm" data-i18n="btnReset">
             🗑️ 清除所有資料重來
         </button>
     </div>
 
     <script>
+        // --- Translations ---
+        const translations = {
+            hk: {
+                appTitle: "💰 分賬工具",
+                appSubtitle: "輸入人名 → 新增消費 → 自動結算",
+                step1Title: "1. 好友名單",
+                step1Badge: "第一步",
+                namePlaceholder: "輸入名字 (如: 小明)",
+                btnAdd: "＋新增",
+                emptyUsers: "目前沒有好友，請輸入名字",
+                step2Title: "2. 新增消費",
+                step2Badge: "記帳中",
+                labelItem: "消費項目",
+                itemPlaceholder: "例如：午餐、唱K",
+                labelPayer: "邊個畀錢？",
+                tabSinglePayer: "單人畀",
+                tabMultiPayer: "多人夾",
+                labelMultiInput: "輸入每個人付嘅金額：",
+                hintMultiAuto: "系統會自動加總為總金額",
+                labelAmount: "總金額",
+                hintAmountLock: "多人付款模式下，總金額由上方輸入自動計算",
+                labelSplit: "分畀邊個？ (邊個要畀錢)",
+                tabEqual: "均分 (平分)",
+                tabCustom: "個別 (各自畀)",
+                labelSelectPeople: "選擇分攤人",
+                btnAllNone: "全選/取消",
+                labelCustomInput: "輸入每個人該畀嘅金額：",
+                btnAddExpense: "＋ 加入這筆數",
+                headerHistory: "已記錄項目",
+                emptyHistory: "目前仲未有消費記錄",
+                headerResult: "📊 最終結算建議",
+                btnShare: "分享 / 複製結果",
+                btnLock: "開始記帳 (鎖定名單)",
+                btnReset: "🗑️ 清除所有資料重來",
+                msgMatch: "✅ 金額吻合",
+                msgMismatch: "❌ 金額不符 (還差 ${diff})",
+                toastAddName: "請輸入名字！",
+                toastNameExists: "這個名字已經在名單內囉！",
+                toastMinUsers: "至少需要兩個人才能分帳喔！",
+                toastZeroAmount: "總金額不能為 0！",
+                toastPayMismatch: "付款金額與總金額不符！",
+                toastNoSplitUser: "至少要選一個人分攤！",
+                toastSplitMismatch: "分攤金額不符 (差 ${diff})",
+                toastAdded: "已加入一筆紀錄！",
+                toastNoHistory: "還沒有消費記錄喔！",
+                toastCopied: "已複製！快貼給朋友吧",
+                toastResetConfirm: "確定要清除所有資料重來嗎？",
+                toastResetDone: "已重置資料",
+                shareTitle: "【消費明細】",
+                sharePaidBy: "畀", // e.g. ivan 畀
+                sharePaidByMulti: "畀", // e.g. ivan & peter 畀
+                shareResultTitle: "【最終結算】",
+                shareNoDebt: "🎉 帳目已平，不用付錢！",
+                shareArrow: "→",
+                shareGive: "畀", // peter 畀 ivan
+                totalLabel: "總金額",
+                paidTag: "付",
+                splitTag: "分",
+                payerSuffix: "先付",
+                splitSuffix: "平分",
+                customSplitPrefix: "個別分攤: ",
+                equalSplitText: "${count} 人平分",
+                payLabel: "PAY",
+                noDebtMsg: "🎉 太棒了！沒有人需要付錢（帳目已平）"
+            },
+            tw: {
+                appTitle: "💰 分帳工具",
+                appSubtitle: "輸入人名 → 新增消費 → 自動結算",
+                step1Title: "1. 好友名單",
+                step1Badge: "第一步",
+                namePlaceholder: "輸入名字 (如: 小明)",
+                btnAdd: "＋新增",
+                emptyUsers: "目前沒有好友，請輸入名字",
+                step2Title: "2. 新增消費",
+                step2Badge: "記帳中",
+                labelItem: "消費項目",
+                itemPlaceholder: "例如：午餐、唱歌",
+                labelPayer: "誰先付錢？",
+                tabSinglePayer: "單人先付",
+                tabMultiPayer: "多人先付",
+                labelMultiInput: "輸入每個人付的金額：",
+                hintMultiAuto: "系統會自動加總為總金額",
+                labelAmount: "總金額",
+                hintAmountLock: "多人付款模式下，總金額由上方輸入自動計算",
+                labelSplit: "分攤給誰？ (誰該出錢)",
+                tabEqual: "均分 (平分錢)",
+                tabCustom: "個別 (各自付)",
+                labelSelectPeople: "選擇分攤人",
+                btnAllNone: "全選/取消",
+                labelCustomInput: "輸入每個人該出的金額：",
+                btnAddExpense: "＋ 加入這筆帳",
+                headerHistory: "已記錄項目",
+                emptyHistory: "目前還沒有消費記錄",
+                headerResult: "📊 最終結算建議",
+                btnShare: "分享 / 複製結果",
+                btnLock: "開始記帳 (鎖定名單)",
+                btnReset: "🗑️ 清除所有資料重來",
+                msgMatch: "✅ 金額吻合",
+                msgMismatch: "❌ 金額不符 (還差 ${diff})",
+                toastAddName: "請輸入名字！",
+                toastNameExists: "這個名字已經在名單內囉！",
+                toastMinUsers: "至少需要兩個人才能分帳喔！",
+                toastZeroAmount: "總金額不能為 0！",
+                toastPayMismatch: "付款金額與總金額不符！",
+                toastNoSplitUser: "至少要選一個人分攤！",
+                toastSplitMismatch: "分攤金額不符 (差 ${diff})",
+                toastAdded: "已加入一筆紀錄！",
+                toastNoHistory: "還沒有消費記錄喔！",
+                toastCopied: "已複製！快貼給朋友吧",
+                toastResetConfirm: "確定要清除所有資料重來嗎？",
+                toastResetDone: "已重置資料",
+                shareTitle: "【消費明細】",
+                sharePaidBy: "先付",
+                sharePaidByMulti: "先付",
+                shareResultTitle: "【最終結算】",
+                shareNoDebt: "🎉 帳目已平，不用付錢！",
+                shareArrow: "→",
+                shareGive: "給",
+                totalLabel: "總金額",
+                paidTag: "付",
+                splitTag: "分",
+                payerSuffix: "先付",
+                splitSuffix: "平分",
+                customSplitPrefix: "個別分攤: ",
+                equalSplitText: "${count} 人平分",
+                payLabel: "PAY",
+                noDebtMsg: "🎉 太棒了！沒有人需要付錢（帳目已平）"
+            },
+            en: {
+                appTitle: "💰 Bill Splitter",
+                appSubtitle: "Add Users → Add Expenses → Auto Split",
+                step1Title: "1. Friends",
+                step1Badge: "Step 1",
+                namePlaceholder: "Enter name (e.g. John)",
+                btnAdd: "+ Add",
+                emptyUsers: "No friends yet, please add names.",
+                step2Title: "2. Add Expense",
+                step2Badge: "Active",
+                labelItem: "Item Name",
+                itemPlaceholder: "e.g. Lunch, Karaoke",
+                labelPayer: "Who Paid?",
+                tabSinglePayer: "Single Payer",
+                tabMultiPayer: "Multi Payer",
+                labelMultiInput: "Enter amount paid by each:",
+                hintMultiAuto: "Total calculated automatically",
+                labelAmount: "Total Amount",
+                hintAmountLock: "Total is calculated from above inputs",
+                labelSplit: "Split with whom?",
+                tabEqual: "Equal Split",
+                tabCustom: "Custom Split",
+                labelSelectPeople: "Select People",
+                btnAllNone: "All/None",
+                labelCustomInput: "Enter amount owed by each:",
+                btnAddExpense: "+ Add Expense",
+                headerHistory: "History",
+                emptyHistory: "No expenses recorded yet",
+                headerResult: "📊 Settlement Plan",
+                btnShare: "Share / Copy Result",
+                btnLock: "Start (Lock Users)",
+                btnReset: "🗑️ Reset All Data",
+                msgMatch: "✅ Matched",
+                msgMismatch: "❌ Mismatch (Diff: ${diff})",
+                toastAddName: "Please enter a name!",
+                toastNameExists: "Name already exists!",
+                toastMinUsers: "Need at least 2 people!",
+                toastZeroAmount: "Amount cannot be 0!",
+                toastPayMismatch: "Payment amount mismatch!",
+                toastNoSplitUser: "Select at least one person!",
+                toastSplitMismatch: "Split amount mismatch (Diff: ${diff})",
+                toastAdded: "Expense added!",
+                toastNoHistory: "No records yet!",
+                toastCopied: "Copied to clipboard!",
+                toastResetConfirm: "Are you sure you want to delete all data?",
+                toastResetDone: "Data reset.",
+                shareTitle: "[Expenses]",
+                sharePaidBy: "paid",
+                sharePaidByMulti: "paid",
+                shareResultTitle: "[Settlement]",
+                shareNoDebt: "🎉 All settled!",
+                shareArrow: "→",
+                shareGive: "pays",
+                totalLabel: "Total",
+                paidTag: "Paid",
+                splitTag: "Split",
+                payerSuffix: "paid",
+                splitSuffix: "split",
+                customSplitPrefix: "Custom: ",
+                equalSplitText: "Split by ${count}",
+                payLabel: "PAY",
+                noDebtMsg: "🎉 Awesome! No debts found."
+            }
+        };
+
+        let currentLang = 'hk';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            
+            // Update simple text elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            // Re-render dynamic lists to update their text
+            renderUsers(); // Update empty message if needed
+            renderExpenses(); // Update history list text
+            calculate(); // Update result list text
+            validateCustomSplit(); // Update validation message
+        }
+
+        // --- Theme Management ---
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
         // --- State Management ---
         let users = [];
         let expenses = [];
         let totalAmount = 0;
         let splitMode = 'equal'; // 'equal' or 'custom'
         let payerMode = 'single'; // 'single' or 'multi'
+        let lastTransactions = []; // Store calculated transactions for sharing
 
         // --- UI Helpers ---
         function showToast(message, type = 'normal') {
             const toast = document.getElementById('toast');
             if (!toast) return;
             toast.textContent = message;
-            toast.style.backgroundColor = type === 'error' ? '#ef4444' : '#333';
+            toast.style.backgroundColor = type === 'error' ? '#ef4444' : (document.documentElement.classList.contains('dark') ? '#333' : '#333');
+            toast.style.color = (document.documentElement.classList.contains('dark') && type !== 'error') ? '#fff' : '#fff';
             toast.className = 'show';
             setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
         }
@@ -252,6 +542,8 @@
                 if (splitMode !== 'custom') {
                     amountInput.readOnly = false;
                     amountInput.classList.remove('bg-gray-100');
+                    amountInput.classList.remove('dark:bg-gray-600'); 
+                    amountInput.classList.remove('dark:bg-[#444]'); 
                     hint.classList.add('hidden');
                 }
             } else {
@@ -263,6 +555,7 @@
                 // In multi payer, total amount is derived
                 amountInput.readOnly = true;
                 amountInput.classList.add('bg-gray-100');
+                amountInput.classList.add('dark:bg-[#444]'); 
                 hint.classList.remove('hidden');
                 updateTotalFromPayers();
             }
@@ -286,6 +579,7 @@
                 if (payerMode === 'single') {
                     amountInput.readOnly = false;
                     amountInput.classList.remove('bg-gray-100');
+                    amountInput.classList.remove('dark:bg-[#444]');
                 }
             } else {
                 customBtn.className = 'flex-1 py-1.5 text-center transition-colors tab-active';
@@ -298,6 +592,7 @@
                      // If Single Payer + Custom Split, let Custom Split Inputs drive the Total for convenience
                      amountInput.readOnly = true;
                      amountInput.classList.add('bg-gray-100');
+                     amountInput.classList.add('dark:bg-[#444]');
                      updateTotalFromSplits();
                 }
             }
@@ -308,13 +603,14 @@
         function addUser() {
             const input = document.getElementById('new-user-name');
             const name = input.value.trim();
+            const t = translations[currentLang];
             
             if (!name) {
-                showToast("請輸入名字！", "error");
+                showToast(t.toastAddName, "error");
                 return;
             }
             if (users.includes(name)) {
-                showToast("這個名字已經在名單內囉！", "error");
+                showToast(t.toastNameExists, "error");
                 return;
             }
 
@@ -325,15 +621,17 @@
 
         function renderUsers() {
             const container = document.getElementById('user-list');
+            const t = translations[currentLang];
+
             if (users.length === 0) {
-                container.innerHTML = '<span class="text-gray-400 text-sm py-2 italic w-full text-center" id="empty-users-msg">目前沒有參加者，請輸入名字</span>';
+                container.innerHTML = `<span class="text-gray-400 dark:text-gray-500 text-sm py-2 italic w-full text-center" id="empty-users-msg">${t.emptyUsers}</span>`;
                 return;
             }
 
             container.innerHTML = users.map((u, idx) => 
-                `<div class="fade-in bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 flex items-center gap-2">
+                `<div class="fade-in bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-800 flex items-center gap-2">
                     ${u}
-                    <button onclick="removeUser(${idx})" class="text-blue-400 hover:text-blue-600 text-xs font-bold leading-none">✕</button>
+                    <button onclick="removeUser(${idx})" class="text-blue-400 dark:text-blue-300 hover:text-blue-600 dark:hover:text-blue-100 text-xs font-bold leading-none">✕</button>
                 </div>`
             ).join('');
         }
@@ -345,14 +643,14 @@
 
         // --- Transition to Expense Phase ---
         function lockUsers() {
+            const t = translations[currentLang];
             if (users.length < 2) {
-                showToast("至少需要兩個人才能分帳喔！", "error");
+                showToast(t.toastMinUsers, "error");
                 return;
             }
 
             document.getElementById('step-users').classList.add('opacity-75', 'pointer-events-none', 'grayscale');
             document.getElementById('lock-users-btn').classList.add('hidden');
-            // document.getElementById('test-btn').classList.add('hidden'); // REMOVED
             document.getElementById('reset-btn').classList.remove('hidden');
             
             const expenseStep = document.getElementById('step-expenses');
@@ -375,24 +673,24 @@
             // 2. Multi Payer Inputs
             multiPayerBox.innerHTML = users.map(u => `
                 <div class="flex items-center space-x-2">
-                    <label class="w-16 text-sm text-gray-600 truncate text-right">${u}</label>
-                    <input type="number" data-user="${u}" placeholder="0" oninput="updateTotalFromPayers()" class="multi-payer-input flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500">
+                    <label class="w-16 text-sm text-gray-600 dark:text-dark-subtext truncate text-right">${u}</label>
+                    <input type="number" data-user="${u}" placeholder="0.00" step="0.01" oninput="updateTotalFromPayers()" class="multi-payer-input flex-1 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-input text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 dark:focus:border-green-500">
                 </div>
             `).join('');
 
             // 3. Equal Split Checkboxes
             splitBox.innerHTML = users.map(u => `
-                <label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border border-gray-200 hover:bg-gray-50 transition-colors">
-                    <input type="checkbox" class="participant-check w-4 h-4 text-green-600 rounded focus:ring-green-500" value="${u}" checked>
-                    <span class="text-sm select-none">${u}</span>
+                <label class="flex items-center space-x-2 cursor-pointer bg-white dark:bg-[#252525] p-2 rounded border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-[#333] transition-colors">
+                    <input type="checkbox" class="participant-check w-4 h-4 text-green-600 rounded focus:ring-green-500 dark:focus:ring-offset-[#252525] dark:bg-[#444] dark:border-[#555]" value="${u}" checked>
+                    <span class="text-sm select-none text-gray-700 dark:text-gray-200">${u}</span>
                 </label>
             `).join('');
 
             // 4. Custom Split Inputs
             customSplitBox.innerHTML = users.map(u => `
                 <div class="flex items-center space-x-2">
-                    <label class="w-16 text-sm text-gray-600 truncate text-right">${u}</label>
-                    <input type="number" data-user="${u}" placeholder="0" oninput="handleCustomSplitInput()" class="custom-split-input flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                    <label class="w-16 text-sm text-gray-600 dark:text-dark-subtext truncate text-right">${u}</label>
+                    <input type="number" data-user="${u}" placeholder="0.00" step="0.01" oninput="handleCustomSplitInput()" class="custom-split-input flex-1 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-input text-gray-900 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-500">
                 </div>
             `).join('');
 
@@ -416,7 +714,7 @@
                 const val = parseFloat(input.value) || 0;
                 sum += val;
             });
-            document.getElementById('item-amount').value = sum > 0 ? sum : '';
+            document.getElementById('item-amount').value = sum > 0 ? parseFloat(sum.toFixed(2)) : '';
             validateCustomSplit();
         }
 
@@ -429,7 +727,7 @@
                 const val = parseFloat(input.value) || 0;
                 sum += val;
             });
-            document.getElementById('item-amount').value = sum > 0 ? sum : '';
+            document.getElementById('item-amount').value = sum > 0 ? parseFloat(sum.toFixed(2)) : '';
         }
 
         function handleCustomSplitInput() {
@@ -442,6 +740,7 @@
 
         function validateCustomSplit() {
             if (splitMode !== 'custom') return;
+            const t = translations[currentLang];
             
             const total = parseFloat(document.getElementById('item-amount').value) || 0;
             const inputs = document.querySelectorAll('.custom-split-input');
@@ -450,24 +749,24 @@
             
             const msgEl = document.getElementById('custom-split-validation');
             
-            // Allow small float error
-            if (Math.abs(total - currentSum) < 0.1) {
-                msgEl.textContent = "✅ 金額吻合";
-                msgEl.className = "mt-2 text-right text-xs text-green-600 font-bold";
+            if (Math.abs(total - currentSum) < 0.01) {
+                msgEl.textContent = t.msgMatch;
+                msgEl.className = "mt-2 text-right text-xs text-green-600 dark:text-green-400 font-bold";
             } else {
-                const diff = total - currentSum;
-                msgEl.textContent = `❌ 金額不符 (還差 ${diff.toFixed(0)})`;
-                msgEl.className = "mt-2 text-right text-xs text-red-500 font-bold";
+                const diff = (total - currentSum).toFixed(2);
+                msgEl.textContent = t.msgMismatch.replace('${diff}', diff);
+                msgEl.className = "mt-2 text-right text-xs text-red-500 dark:text-red-400 font-bold";
             }
         }
 
         function addExpense() {
+            const t = translations[currentLang];
             const desc = document.getElementById('item-desc').value.trim() || '未命名項目';
             const amount = parseFloat(document.getElementById('item-amount').value);
             
             // 1. Validate Total
             if (!amount || amount <= 0 || isNaN(amount)) {
-                showToast("總金額不能為 0！", "error");
+                showToast(t.toastZeroAmount, "error");
                 return;
             }
 
@@ -486,8 +785,8 @@
                         inputSum += val;
                     }
                 });
-                if (Math.abs(inputSum - amount) > 0.1) {
-                    showToast("付款金額與總金額不符！", "error");
+                if (Math.abs(inputSum - amount) > 0.01) {
+                    showToast(t.toastPayMismatch, "error");
                     return;
                 }
             }
@@ -499,7 +798,7 @@
                 const involved = Array.from(checkboxes).map(cb => cb.value);
 
                 if (involved.length === 0) {
-                    showToast("至少要選一個人分攤！", "error");
+                    showToast(t.toastNoSplitUser, "error");
                     return;
                 }
                 const perPerson = amount / involved.length;
@@ -516,8 +815,8 @@
                     }
                 });
                 
-                if (Math.abs(inputSum - amount) > 1) { // 1 dollar tolerance
-                    showToast(`分攤金額不符 (差 ${amount - inputSum})`, "error");
+                if (Math.abs(inputSum - amount) > 0.01) {
+                    showToast(t.toastSplitMismatch.replace('${diff}', (amount - inputSum).toFixed(2)), "error");
                     return;
                 }
             }
@@ -531,22 +830,24 @@
             document.getElementById('item-amount').value = '';
             document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
             document.querySelectorAll('.participant-check').forEach(c => c.checked = true);
-            
+            document.getElementById('custom-split-validation').textContent = ''; 
+
             // Reset modes to default for convenience
             setPayerMode('single');
             setSplitMode('equal');
 
             renderExpenses();
             calculate(); 
-            showToast("已加入一筆紀錄！");
+            showToast(t.toastAdded);
         }
 
         function renderExpenses() {
             const list = document.getElementById('expense-list');
-            document.getElementById('total-amount-display').innerText = `總金額: $${totalAmount}`;
+            const t = translations[currentLang];
+            document.getElementById('total-amount-display').innerText = `${t.totalLabel}: $${totalAmount.toFixed(2)}`;
 
             if (expenses.length === 0) {
-                list.innerHTML = '<li class="text-center text-gray-400 italic py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">目前還沒有消費記錄</li>';
+                list.innerHTML = `<li class="text-center text-gray-400 dark:text-gray-500 italic py-4 bg-gray-50 dark:bg-[#252525] rounded-lg border border-dashed border-gray-300 dark:border-dark-border">${t.emptyHistory}</li>`;
                 return;
             }
             
@@ -555,38 +856,40 @@
                 const payerNames = Object.keys(e.payers);
                 let payerText = "";
                 if (payerNames.length === 1) {
-                    payerText = `${payerNames[0]} 先付`;
+                    payerText = `${payerNames[0]} ${t.payerSuffix}`;
                 } else {
-                    payerText = payerNames.map(n => `${n}($${e.payers[n]})`).join(', ') + " 先付";
+                    payerText = payerNames.map(n => `${n}($${e.payers[n].toFixed(2)})`).join(', ') + " " + t.payerSuffix;
                 }
 
                 // Format Consumers
                 const consumerNames = Object.keys(e.consumers);
                 let consumerText = "";
-                // Heuristic: if all amounts roughly equal
                 const amounts = Object.values(e.consumers);
-                const isEqual = amounts.every(val => Math.abs(val - amounts[0]) < 0.1);
+                const isEqual = amounts.every(val => Math.abs(val - amounts[0]) < 0.01);
 
                 if (isEqual) {
-                     if (consumerNames.length > 3) consumerText = `${consumerNames.slice(0,2).join(',')} 等 ${consumerNames.length} 人平分`;
-                     else consumerText = `${consumerNames.join(', ')} 平分`;
+                     if (consumerNames.length > 3) {
+                        consumerText = `${consumerNames.slice(0,2).join(',')}... ` + t.equalSplitText.replace('${count}', consumerNames.length);
+                     } else {
+                        consumerText = `${consumerNames.join(', ')} ` + t.splitSuffix;
+                     }
                 } else {
-                    consumerText = "個別分攤: " + consumerNames.map(n => `${n}($${Math.round(e.consumers[n])})`).join(', ');
+                    consumerText = t.customSplitPrefix + consumerNames.map(n => `${n}($${e.consumers[n].toFixed(2)})`).join(', ');
                 }
 
                 return `
-                <li class="fade-in bg-white border border-gray-100 p-3 rounded-lg flex justify-between items-center shadow-sm">
+                <li class="fade-in bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-dark-border p-3 rounded-lg flex justify-between items-center shadow-sm">
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline mb-1">
-                            <span class="font-bold text-gray-800 truncate mr-2">${e.desc}</span>
-                            <span class="text-green-600 font-bold font-mono">$${e.amount}</span>
+                            <span class="font-bold text-gray-800 dark:text-gray-200 truncate mr-2">${e.desc}</span>
+                            <span class="text-green-600 dark:text-green-400 font-bold font-mono">$${e.amount.toFixed(2)}</span>
                         </div>
-                        <div class="text-xs text-gray-500">
-                            <div class="mb-0.5"><span class="bg-yellow-100 text-yellow-800 px-1 rounded mr-1">付</span> ${payerText}</div>
-                            <div><span class="bg-blue-100 text-blue-800 px-1 rounded mr-1">分</span> ${consumerText}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            <div class="mb-0.5"><span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-1 rounded mr-1">${t.paidTag}</span> ${payerText}</div>
+                            <div><span class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-1 rounded mr-1">${t.splitTag}</span> ${consumerText}</div>
                         </div>
                     </div>
-                    <button onclick="removeExpense(${index})" class="ml-3 text-gray-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors">
+                    <button onclick="removeExpense(${index})" class="ml-3 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </li>
@@ -605,9 +908,11 @@
         // --- Core Algorithm ---
         function calculate() {
             const resultList = document.getElementById('result-list');
+            const t = translations[currentLang];
+            lastTransactions = []; // Reset shared transactions
 
             if (expenses.length === 0) {
-                resultList.innerHTML = '<p class="text-center text-gray-400 text-sm py-2">輸入消費後會自動計算...</p>';
+                resultList.innerHTML = `<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-2">輸入消費後會自動計算...</p>`;
                 return;
             }
 
@@ -615,27 +920,24 @@
             users.forEach(u => balances[u] = 0);
 
             expenses.forEach(e => {
-                // Add credits (People who paid money)
                 for (const [payer, amount] of Object.entries(e.payers)) {
                     balances[payer] += amount;
                 }
-                // Subtract debits (People who consumed money)
                 for (const [consumer, amount] of Object.entries(e.consumers)) {
                     balances[consumer] -= amount;
                 }
             });
 
-            // Filtering small floating point errors
             let debtors = [];
             let creditors = [];
 
             for (const [user, amount] of Object.entries(balances)) {
-                if (amount < -0.1) debtors.push({ user, amount }); 
-                if (amount > 0.1) creditors.push({ user, amount });
+                if (amount < -0.01) debtors.push({ user, amount }); 
+                if (amount > 0.01) creditors.push({ user, amount });
             }
 
-            debtors.sort((a, b) => a.amount - b.amount); // Ascending (most negative first)
-            creditors.sort((a, b) => b.amount - a.amount); // Descending (most positive first)
+            debtors.sort((a, b) => a.amount - b.amount); 
+            creditors.sort((a, b) => b.amount - a.amount); 
 
             let transactions = [];
             let i = 0, j = 0;
@@ -646,46 +948,144 @@
                 
                 let amount = Math.min(Math.abs(debtor.amount), creditor.amount);
                 
-                if (amount > 0.5) {
+                if (amount > 0.05) {
                     transactions.push({
                         from: debtor.user,
                         to: creditor.user,
-                        money: Math.round(amount) 
+                        money: amount.toFixed(2) 
                     });
                 }
 
                 debtor.amount += amount;
                 creditor.amount -= amount;
 
-                if (Math.abs(debtor.amount) < 0.1) i++;
-                if (creditor.amount < 0.1) j++;
+                if (Math.abs(debtor.amount) < 0.01) i++;
+                if (creditor.amount < 0.01) j++;
             }
+
+            lastTransactions = transactions; // Store for sharing
 
             // Render Results
             if (transactions.length === 0) {
                  resultList.innerHTML = `
-                    <div class="text-center py-4 bg-green-50 text-green-700 rounded-lg">
-                        🎉 太棒了！沒有人需要付錢（帳目已平）
+                    <div class="text-center py-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+                        ${t.noDebtMsg}
                     </div>`;
             } else {
-                resultList.innerHTML = transactions.map(t => `
-                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border-l-4 border-indigo-500 animate-pulse-once">
-                        <div class="font-bold text-gray-700 w-1/3 truncate text-right pr-2">${t.from}</div>
-                        <div class="flex flex-col items-center justify-center w-1/3">
-                            <span class="text-[10px] text-gray-400 uppercase tracking-wide">PAY</span>
-                            <div class="flex items-center text-indigo-600 font-bold text-xl">
-                                <span class="mr-1">➜</span> $${t.money}
-                            </div>
+                resultList.innerHTML = transactions.map(tData => `
+                    <div class="flex flex-col items-center bg-white dark:bg-[#1a1a1a] p-4 rounded-lg shadow-sm border-l-4 border-indigo-500 dark:border-indigo-400 animate-pulse-once">
+                        <div class="flex w-full justify-between items-center mb-1">
+                             <div class="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[45%] text-right">${tData.from}</div>
+                             <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mx-2">${t.payLabel}</span>
+                             <div class="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[45%] text-left">${tData.to}</div>
                         </div>
-                        <div class="font-bold text-gray-700 w-1/3 truncate pl-2">${t.to}</div>
+                        <div class="text-indigo-600 dark:text-indigo-400 font-bold text-xl mt-1 break-all text-center">
+                            $${tData.money}
+                        </div>
                     </div>
                 `).join('');
             }
         }
 
+        // --- Share Functionality ---
+        function shareResult() {
+            const t = translations[currentLang];
+            if (expenses.length === 0) {
+                showToast(t.toastNoHistory, "error");
+                return;
+            }
+
+            // Using array join to avoid mixed newline issues across different platforms
+            let lines = [];
+            lines.push(t.shareTitle);
+            
+            expenses.forEach((e) => {
+                const payerNames = Object.keys(e.payers).join(' & ');
+                const paidByText = Object.keys(e.payers).length > 1 ? t.sharePaidByMulti : t.sharePaidBy;
+                lines.push(e.desc);
+                lines.push(`$${e.amount.toFixed(2)} (${payerNames} ${paidByText})`);
+                lines.push(""); // Empty line for visual separation
+            });
+
+            lines.push(t.shareResultTitle);
+            if (lastTransactions.length === 0) {
+                lines.push(t.shareNoDebt);
+            } else {
+                lastTransactions.forEach(trans => {
+                    // e.g. → peter 畀 ivan: *$75.00*
+                    lines.push(`${t.shareArrow} ${trans.from} ${t.shareGive} ${trans.to}: *$${trans.money}*`);
+                });
+            }
+
+            const text = lines.join('\n');
+            const shareData = {
+                title: t.appTitle,
+                text: text
+            };
+
+            // Try Native Share API first
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .then(() => {
+                        // Optional: show toast "Shared"
+                    })
+                    .catch((err) => {
+                        // If error wasn't user cancellation (AbortError), fallback to copy
+                        if (err.name !== 'AbortError') {
+                             copyToClipboard(text);
+                        }
+                    });
+            } else {
+                // Fallback to Clipboard
+                copyToClipboard(text);
+            }
+        }
+
+        function copyToClipboard(text) {
+             const t = translations[currentLang];
+             if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(t.toastCopied);
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const t = translations[currentLang];
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast(t.toastCopied);
+                } else {
+                    showToast("Copy failed", "error");
+                }
+            } catch (err) {
+                showToast("Copy failed", "error");
+            }
+
+            document.body.removeChild(textArea);
+        }
+
         // --- Reset ---
         function resetApp() {
-            if(confirm("確定要清除所有資料重來嗎？")) {
+            const t = translations[currentLang];
+            if(confirm(t.toastResetConfirm)) {
                 users = [];
                 expenses = [];
                 totalAmount = 0;
@@ -695,7 +1095,6 @@
                 document.getElementById('step-expenses').classList.add('hidden');
                 document.getElementById('step-result').classList.add('hidden');
                 document.getElementById('lock-users-btn').classList.remove('hidden');
-                // Removed test-btn logic to fix bug
                 document.getElementById('reset-btn').classList.add('hidden');
                 
                 setPayerMode('single');
@@ -705,9 +1104,12 @@
                 renderExpenses();
                 document.getElementById('result-list').innerHTML = '';
                 
-                showToast("已重置資料");
+                showToast(t.toastResetDone);
             }
         }
+        
+        // Init logic to set placeholders correctly on load
+        changeLanguage('hk');
     </script>
 </body>
 </html>
