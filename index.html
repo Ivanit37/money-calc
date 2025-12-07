@@ -293,11 +293,19 @@
             <!-- Results here -->
         </div>
         
-        <!-- Share Button -->
-        <button onclick="shareResult()" class="btn w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-lg mt-4 shadow-lg shadow-purple-200 dark:shadow-none hover:bg-purple-700 flex items-center justify-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-            <span data-i18n="btnShare">分享 / 複製結果</span>
-        </button>
+        <!-- Refactored Share/Copy Buttons -->
+        <div class="mt-4 flex gap-3">
+            <!-- 1. Share Button (Native) -->
+            <button onclick="handleNativeShare()" class="btn flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-purple-200 dark:shadow-none hover:bg-purple-700 flex items-center justify-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                <span data-i18n="btnShare">分享</span>
+            </button>
+            <!-- 2. Copy Button (Fallback) -->
+            <button onclick="handleCopyResult()" class="btn flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 flex items-center justify-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 001 1h5m-5-4h4m1 14l-2 2-2-2m2-8V3a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1h8a1 1 0 001-1v-4M8 7h6a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2v-10a2 2 0 012-2z"></path></svg>
+                <span data-i18n="btnCopy">複製結果</span>
+            </button>
+        </div>
     </div>
 
     <!-- Footer Spacer only shown in scroll mode to prevent fixed buttons blocking content -->
@@ -335,7 +343,8 @@
                 headerHistory: "已記錄項目",
                 emptyHistory: "目前仲未有消費記錄",
                 headerResult: "📊 最終結算建議",
-                btnShare: "分享 / 複製結果",
+                btnShare: "分享", // 修正翻譯
+                btnCopy: "複製結果", // 新增翻譯
                 btnLock: "開始記帳 (鎖定名單)",
                 btnReset: "🗑️ 清除所有資料重來",
                 msgMatch: "✅ 金額吻合",
@@ -398,7 +407,8 @@
                 headerHistory: "已記錄項目",
                 emptyHistory: "目前還沒有消費記錄",
                 headerResult: "📊 最終結算建議",
-                btnShare: "分享 / 複製結果",
+                btnShare: "分享", // 修正翻譯
+                btnCopy: "複製結果", // 新增翻譯
                 btnLock: "開始記帳 (鎖定名單)",
                 btnReset: "🗑️ 清除所有資料重來",
                 msgMatch: "✅ 金額吻合",
@@ -461,7 +471,8 @@
                 headerHistory: "History",
                 emptyHistory: "No expenses recorded yet",
                 headerResult: "📊 Settlement Plan",
-                btnShare: "Share / Copy Result",
+                btnShare: "Share", // 修正翻譯
+                btnCopy: "Copy Result", // 新增翻譯
                 btnLock: "Start (Lock Users)",
                 btnReset: "🗑️ Reset All Data",
                 msgMatch: "✅ Matched",
@@ -1129,15 +1140,18 @@
             }
         }
 
-        // --- Share Functionality ---
-        function shareResult() {
+        // --- Share Functionality Refactored ---
+
+        /**
+         * Generates the structured text for sharing/copying.
+         * @returns {string} The formatted text result.
+         */
+        function generateShareText() {
             const t = translations[currentLang];
             if (expenses.length === 0) {
-                showToast(t.toastNoHistory, "error");
-                return;
+                return "";
             }
 
-            // Using array join to avoid mixed newline issues across different platforms
             let lines = [];
             lines.push(t.shareTitle);
             
@@ -1146,7 +1160,7 @@
                 const paidByText = Object.keys(e.payers).length > 1 ? t.sharePaidByMulti : t.sharePaidBy;
                 lines.push(e.desc);
                 lines.push(`$${e.amount.toFixed(2)} (${payerNames} ${paidByText})`);
-                lines.push(""); // Empty line for visual separation
+                lines.push(""); 
             });
 
             lines.push(t.shareResultTitle);
@@ -1155,32 +1169,55 @@
             } else {
                 lastTransactions.forEach(trans => {
                     // e.g. → peter 畀 ivan: *$75.00*
-                    lines.push(`${t.shareArrow} ${trans.from} ${trans.to}: *$${trans.money}*`);
+                    lines.push(`${t.shareArrow} ${trans.from} ${t.shareGive} ${trans.to}: *$${trans.money}*`);
                 });
             }
 
-            const text = lines.join('\n');
+            return lines.join('\n');
+        }
+
+        /**
+         * Attempts to use the native Web Share API.
+         */
+        function handleNativeShare() {
+            const t = translations[currentLang];
+            const text = generateShareText();
+
+            if (!text) {
+                showToast(t.toastNoHistory, "error");
+                return;
+            }
+
             const shareData = {
                 title: t.appTitle,
                 text: text
             };
 
-            // Try Native Share API first
             if (navigator.share) {
                 navigator.share(shareData)
-                    .then(() => {
-                        // Optional: show toast "Shared"
-                    })
                     .catch((err) => {
-                        // If error wasn't user cancellation (AbortError), fallback to copy
+                        // Do nothing on AbortError (user canceled)
                         if (err.name !== 'AbortError') {
-                             copyToClipboard(text);
+                            showToast("分享失敗", "error"); 
                         }
                     });
             } else {
-                // Fallback to Clipboard
-                copyToClipboard(text);
+                showToast("此裝置不支援原生分享，已自動切換為複製功能", "error");
+                handleCopyResult(); // Fallback to copy if native share isn't supported
             }
+        }
+
+        /**
+         * Copies the result text to the clipboard.
+         */
+        function handleCopyResult() {
+            const t = translations[currentLang];
+            const text = generateShareText();
+            if (!text) {
+                showToast(t.toastNoHistory, "error");
+                return;
+            }
+            copyToClipboard(text);
         }
 
         function copyToClipboard(text) {
