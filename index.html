@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💰 分賬工具</title>
+    <title>分賬工具</title>
     
     <!-- PWA / Mobile Web App Setup -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -121,8 +121,8 @@
         </div>
     </div>
 
-    <!-- Spacer div to push content down (約 5.5rem / 88px) -->
-    <div id="header-spacer" class="h-[5.5rem]"></div>
+    <!-- Spacer div to push content down (約 5.5rem / 88px). Hidden by default for centering. -->
+    <div id="header-spacer" class="h-[5.5rem] hidden"></div>
 
     <!-- Notification Toast -->
     <div id="toast">提示訊息</div>
@@ -146,6 +146,28 @@
         <div id="user-list" class="flex flex-wrap gap-2 min-h-[40px]">
             <span class="text-gray-400 dark:text-gray-500 text-sm py-2 italic w-full text-center" id="empty-users-msg" data-i18n="emptyUsers">目前沒有好友，請輸入名字</span>
         </div>
+    </div>
+
+    <!-- Action Buttons Container (Step 1: In flow for centering; Step 2/3: Fixed at bottom) -->
+    <div id="action-buttons-container" class="space-y-3 mt-4 mb-6 w-full">
+        <button id="lock-users-btn" onclick="lockUsers()" class="btn w-full bg-gray-800 dark:bg-[#333] text-white dark:text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-900 dark:hover:bg-[#444] border border-transparent dark:border-[#444]" data-i18n="btnLock">
+            開始記帳 (鎖定名單)
+        </button>
+
+        <!-- Reset Confirmation Block: Hidden by default -->
+        <div id="reset-confirmation-block" class="hidden space-x-2">
+            <button id="cancel-reset-btn" onclick="toggleResetConfirmation(false)" class="btn flex-1 bg-gray-200 dark:bg-[#444] text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 py-3 rounded-xl font-medium text-sm hover:bg-gray-300 dark:hover:bg-[#555]">
+                取消
+            </button>
+            <button id="confirm-reset-btn" onclick="performReset()" class="btn flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-red-700">
+                確認清除！
+            </button>
+        </div>
+
+        <!-- Original Reset Button: Hidden until locked. Now triggers confirmation UI. -->
+        <button id="reset-btn" onclick="toggleResetConfirmation(true)" class="hidden btn w-full bg-white dark:bg-[#252525] text-red-500 dark:text-red-400 border border-red-200 dark:border-red-900/30 py-3 rounded-xl font-medium text-sm hover:bg-red-50 dark:hover:bg-[#333] shadow-sm" data-i18n="btnReset">
+            🗑️ 清除所有資料重來
+        </button>
     </div>
 
     <!-- Step 2: Add Expenses -->
@@ -274,19 +296,8 @@
         </button>
     </div>
 
-    <!-- Spacer to prevent sticky button blocking content after unlocking -->
-    <div class="h-24 hidden" id="spacer-bottom"></div>
-
-    <!-- Action Buttons (使用 fixed 讓它不影響垂直居中計算) -->
-    <div id="action-buttons-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-10 space-y-3">
-        <button id="lock-users-btn" onclick="lockUsers()" class="btn w-full bg-gray-800 dark:bg-[#333] text-white dark:text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-900 dark:hover:bg-[#444] border border-transparent dark:border-[#444]" data-i18n="btnLock">
-            開始記帳 (鎖定名單)
-        </button>
-
-        <button id="reset-btn" onclick="resetApp()" class="hidden btn w-full bg-white dark:bg-[#252525] text-red-500 dark:text-red-400 border border-red-200 dark:border-red-900/30 py-3 rounded-xl font-medium text-sm hover:bg-red-50 dark:hover:bg-[#333] shadow-sm" data-i18n="btnReset">
-            🗑️ 清除所有資料重來
-        </button>
-    </div>
+    <!-- Footer Spacer only shown in scroll mode to prevent fixed buttons blocking content -->
+    <div class="h-24 hidden" id="footer-spacer"></div>
 
     <script>
         // --- Translations ---
@@ -538,6 +549,90 @@
             if (e.key === 'Enter') callback();
         }
 
+        // --- Confirmation and Reset Logic ---
+
+        /**
+         * Toggles the confirmation UI for the reset button.
+         * @param {boolean} show If true, shows the confirmation buttons. If false, shows the main reset button.
+         */
+        function toggleResetConfirmation(show) {
+            const resetBtn = document.getElementById('reset-btn');
+            const resetConfirmBlock = document.getElementById('reset-confirmation-block');
+            
+            if (show) {
+                resetBtn.classList.add('hidden');
+                resetConfirmBlock.classList.remove('hidden');
+                resetConfirmBlock.classList.add('flex');
+            } else {
+                // This is called by the 'Cancel' button or after actual reset
+                resetConfirmBlock.classList.add('hidden');
+                resetConfirmBlock.classList.remove('flex');
+                
+                // Only show main reset button if we are in scroll mode (locked users)
+                if (!document.getElementById('lock-users-btn').classList.contains('hidden')) {
+                    resetBtn.classList.add('hidden'); // Stay hidden in pre-lock mode
+                } else {
+                    resetBtn.classList.remove('hidden'); // Show in scroll mode
+                }
+            }
+        }
+
+        /**
+         * Performs the actual data reset. This replaces the old logic that contained `confirm()`.
+         */
+        function performReset() {
+            users = [];
+            expenses = [];
+            totalAmount = 0;
+            
+            const mainBody = document.getElementById('main-body');
+            const btnContainer = document.getElementById('action-buttons-container');
+            const footerSpacer = document.getElementById('footer-spacer');
+            const t = translations[currentLang];
+
+            // 1. Revert UI state to Centered Mode
+            mainBody.classList.add('justify-center');
+            document.getElementById('header-spacer').classList.add('hidden');
+
+            // 2. Change button container back to Flow position
+            btnContainer.classList.remove('fixed', 'bottom-4', 'left-1/2', 'transform', '-translate-x-1/2', 'w-[calc(100%-2rem)]', 'max-w-md', 'z-10');
+            btnContainer.classList.add('mt-4', 'mb-6');
+
+            footerSpacer.classList.add('hidden');
+
+            // 3. UI Element Hiding/Showing
+            document.getElementById('step-users').classList.remove('opacity-75', 'pointer-events-none', 'grayscale');
+            document.getElementById('step-expenses').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('lock-users-btn').classList.remove('hidden');
+            document.getElementById('reset-btn').classList.add('hidden');
+            
+            // 4. Clean up state and re-render
+            setPayerMode('single');
+            setSplitMode('equal');
+
+            renderUsers();
+            renderExpenses();
+            document.getElementById('result-list').innerHTML = '';
+            
+            // 5. Hide confirmation UI
+            toggleResetConfirmation(false);
+            
+            showToast(t.toastResetDone);
+        }
+
+        // The original resetApp is now just a wrapper for force-reset from internal logic.
+        function resetApp(force = false) {
+             if (force) {
+                 performReset();
+             } else {
+                 // The actual UI button now calls toggleResetConfirmation(true)
+                 // This function is kept for consistency with the old internal logic (like lockUsers check)
+                 toggleResetConfirmation(true);
+             }
+        }
+
+
         // --- Mode Switching Logic ---
         function setPayerMode(mode) {
             payerMode = mode;
@@ -660,18 +755,41 @@
         // --- Transition to Expense Phase ---
         function lockUsers() {
             const t = translations[currentLang];
+            
             if (users.length < 2) {
+                // If the user presses the button but hasn't entered names, show the prompt
                 showToast(t.toastMinUsers, "error");
+                
+                // *** FORCE RESET if somehow state is inconsistent (as requested by user) ***
+                if (users.length === 0 && expenses.length > 0) {
+                    showToast("偵測到數據不一致，強制重置中...", "error");
+                    // Note: Calling performReset() directly here, bypassing the manual reset UI flow.
+                    setTimeout(() => performReset(), 1500); 
+                    return;
+                }
                 return;
             }
             
-            // --- Layout Change: Remove centering, add scrolling space ---
-            document.getElementById('main-body').classList.remove('justify-center');
-            document.getElementById('header-spacer').classList.remove('hidden'); // Show spacer when content scrolls
+            const mainBody = document.getElementById('main-body');
+            const btnContainer = document.getElementById('action-buttons-container');
+            const footerSpacer = document.getElementById('footer-spacer');
+
+            // --- Layout Change: Scroll Mode (Top alignment, fixed buttons) ---
+            mainBody.classList.remove('justify-center');
+            document.getElementById('header-spacer').classList.remove('hidden'); // Show top spacer
+
+            // Change button container to Fixed position
+            btnContainer.classList.add('fixed', 'bottom-4', 'left-1/2', 'transform', '-translate-x-1/2', 'w-[calc(100%-2rem)]', 'max-w-md', 'z-10');
+            btnContainer.classList.remove('mt-4', 'mb-6');
+
+            footerSpacer.classList.remove('hidden');
 
             document.getElementById('step-users').classList.add('opacity-75', 'pointer-events-none', 'grayscale');
             document.getElementById('lock-users-btn').classList.add('hidden');
             document.getElementById('reset-btn').classList.remove('hidden');
+            
+            // Hide confirmation block if it was visible
+            toggleResetConfirmation(false); 
             
             const expenseStep = document.getElementById('step-expenses');
             expenseStep.classList.remove('hidden');
@@ -714,9 +832,9 @@
                 </div>
             `).join('');
 
-            // Scroll to next step
+            // Scroll to top
             setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top after transition
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
         }
 
@@ -1100,36 +1218,6 @@
             }
 
             document.body.removeChild(textArea);
-        }
-
-        // --- Reset ---
-        function resetApp() {
-            const t = translations[currentLang];
-            if(confirm(t.toastResetConfirm)) {
-                users = [];
-                expenses = [];
-                totalAmount = 0;
-                
-                // --- Layout Change: Add centering, remove scrolling space ---
-                document.getElementById('main-body').classList.add('justify-center');
-                document.getElementById('header-spacer').classList.add('hidden');
-
-                // UI Reset
-                document.getElementById('step-users').classList.remove('opacity-75', 'pointer-events-none', 'grayscale');
-                document.getElementById('step-expenses').classList.add('hidden');
-                document.getElementById('step-result').classList.add('hidden');
-                document.getElementById('lock-users-btn').classList.remove('hidden');
-                document.getElementById('reset-btn').classList.add('hidden');
-                
-                setPayerMode('single');
-                setSplitMode('equal');
-
-                renderUsers();
-                renderExpenses();
-                document.getElementById('result-list').innerHTML = '';
-                
-                showToast(t.toastResetDone);
-            }
         }
         
         // Init logic to set placeholders correctly on load
